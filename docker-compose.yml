@@ -1,14 +1,12 @@
 # ==============================================================================
-# PRODUCTION STACK - chạy trên VPS
+# PRODUCTION STACK - chạy trên VPS (CHỈ CHẠY SRS MEDIA SERVER)
 #   - Backend: chạy trên Azure Container Apps (repo traiga_be) -> KHÔNG có ở đây
-#   - Frontend: image build sẵn bởi GitHub Actions (repo traiga_fe)
-#   - SRS: media server (cần UDP nên phải chạy trên VPS)
+#   - Frontend: chạy trên Vercel (repo traiga_fe) -> KHÔNG có ở đây
+#   - SRS: media server (cần RTMP & UDP nên chạy trên VPS)
 # Địa chỉ backend cấu hình qua biến BACKEND_URL trong .env
-#
-# Chạy local (chỉ SRS, BE chạy trên máy): docker compose -f docker-compose.dev.yml up -d
 # ==============================================================================
 services:
-  # 1. SRS 5 Media Server (RTMP ingest, HLS & WebRTC)
+  # SRS 5 Media Server (RTMP ingest, HLS & WebRTC)
   srs:
     image: ossrs/srs:5
     container_name: traiga-srs
@@ -19,7 +17,8 @@ services:
       - sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
     ports:
       - "1935:1935"      # RTMP ingest (OBS, vMix)
-      - "8088:8088"      # SRS HTTPS (WebRTC publish trực tiếp)
+      - "8080:8080"      # SRS HTTP (HLS & WebRTC signaling)
+      - "8088:8088"      # SRS HTTPS (HLS & WebRTC publish trực tiếp)
       - "8000:8000/udp"  # WebRTC media (UDP)
     environment:
       - CANDIDATE=${CANDIDATE}       # IP public của VPS
@@ -30,20 +29,6 @@ services:
       - ./certs/server.key:/usr/local/srs/conf/server.key:ro
       - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/players/rtc_publisher.html:ro
       - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/rtc_publisher.html:ro
-    networks:
-      - live_network
-
-  # 2. React Frontend + Nginx (proxy /api, /ws -> Azure backend; /live, /rtc -> SRS)
-  frontend:
-    image: ${DOCKER_HUB_USER}/traiga-fe:latest
-    container_name: traiga-frontend
-    restart: always
-    ports:
-      - "80:80"
-    environment:
-      - BACKEND_URL=${BACKEND_URL}
-    depends_on:
-      - srs
     networks:
       - live_network
 
