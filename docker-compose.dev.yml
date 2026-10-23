@@ -3,7 +3,10 @@ services:
     image: ossrs/srs:5
     container_name: srs-media-server
     restart: always
-    command: ["./objs/srs", "-c", "conf/srs.conf"]
+    # Sinh conf/srs.conf từ template, thay __BACKEND_URL__ bằng biến BACKEND_URL
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
     ports:
       - "1935:1935"      # RTMP Ingest (từ OBS)
       - "1985:1985"      # SRS HTTP API / WebRTC Signaling
@@ -15,11 +18,12 @@ services:
     environment:
       # Địa chỉ IP để client WebRTC (điện thoại/web) kết nối tới
       - CANDIDATE=${CANDIDATE:-192.168.1.48}
+      # Backend Go chạy trên máy local (hoặc đổi thành URL Azure để test)
+      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "backend:host-gateway"
     volumes:
-      - ./srs.conf:/usr/local/srs/conf/srs.conf
-      - ./srs.conf:/usr/local/srs/conf/docker.conf
+      - ./srs.conf:/usr/local/srs/conf/srs.conf.tpl:ro
       - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/players/rtc_publisher.html
       - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/rtc_publisher.html

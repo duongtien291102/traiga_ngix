@@ -1,4 +1,4 @@
-name: Deploy infra (SRS + docker-compose)
+name: Validate infra configs
 
 on:
   push:
@@ -6,21 +6,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Pull config & restart stack on VPS
+  validate:
+    name: Check configs syntax
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
-          script: |
-            set -e
-            cd /opt/traiga
-            git pull --ff-only
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker image prune -f
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose syntax
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+
+  # Tạm thời tắt bước SSH deploy cho tới khi bạn cấu hình VPS
+  # deploy:
+  #   name: Pull config & restart stack on VPS
+  #   needs: validate
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy on VPS
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       with:
+  #         host: ${{ secrets.SERVER_HOST }}
+  #         username: ${{ secrets.SERVER_USER }}
+  #         key: ${{ secrets.SERVER_SSH_KEY }}
+  #         port: ${{ secrets.SERVER_PORT || 22 }}
+  #         script: |
+  #           set -e
+  #           cd /opt/traiga
+  #           git pull --ff-only
+  #           docker compose pull
+  #           docker compose up -d --remove-orphans
+  #           docker image prune -f
