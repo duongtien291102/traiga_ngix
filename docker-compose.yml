@@ -14,7 +14,10 @@ services:
     # Sinh conf/srs.conf từ template, thay __BACKEND_URL__ bằng biến BACKEND_URL
     entrypoint: ["/bin/sh", "-c"]
     command:
-      - sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
+      - |
+        mkdir -p ./objs/nginx/html/record/live
+        (while true; do find ./objs/nginx/html/record -type f -name "*.mp4" -mmin +180 -delete 2>/dev/null; sleep 600; done) &
+        sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
     ports:
       - "1935:1935"      # RTMP ingest (OBS, vMix)
       - "8080:8080"      # SRS HTTP (HLS & WebRTC signaling)
