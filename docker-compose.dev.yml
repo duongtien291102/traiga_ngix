@@ -17,7 +17,7 @@ services:
       - "8000:8000/udp"  # WebRTC Media Transport qua UDP
     environment:
       # Địa chỉ IP để client WebRTC (điện thoại/web) kết nối tới
-      - CANDIDATE=${CANDIDATE:-192.168.1.48}
+      - CANDIDATE=${CANDIDATE:-192.168.1.204}
       # Backend Go chạy trên Azure Container Apps (xác thực stream key & kết thúc phiên live)
       - BACKEND_URL=${BACKEND_URL:-https://demo-webtraiga.proudsky-59d95604.southeastasia.azurecontainerapps.io}
     extra_hosts:
