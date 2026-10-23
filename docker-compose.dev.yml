@@ -18,8 +18,8 @@ services:
     environment:
       # Địa chỉ IP để client WebRTC (điện thoại/web) kết nối tới
       - CANDIDATE=${CANDIDATE:-192.168.1.48}
-      # Backend Go chạy trên máy local (hoặc đổi thành URL Azure để test)
-      - BACKEND_URL=${BACKEND_URL:-http://backend:8000}
+      # Backend Go chạy trên Azure Container Apps (xác thực stream key & kết thúc phiên live)
+      - BACKEND_URL=${BACKEND_URL:-https://demo-webtraiga.proudsky-59d95604.southeastasia.azurecontainerapps.io}
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "backend:host-gateway"
