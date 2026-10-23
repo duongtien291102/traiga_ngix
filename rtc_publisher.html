@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Studio - Mobile Admin & Live Chat</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <script type="text/javascript" src="js/jquery-1.12.2.min.js"></script>
+    <script type="text/javascript" src="js/adapter-7.4.0.min.js"></script>
+    <script type="text/javascript" src="js/srs.sdk.js"></script>
+    <script type="text/javascript" src="js/winlin.utility.js"></script>
+    <script type="text/javascript" src="js/srs.page.js"></script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 12px;
+            margin: 0;
+            padding-bottom: 40px;
+        }
+        .studio-card {
+            background: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        h2 {
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-live {
+            background: rgba(225, 29, 72, 0.2);
+            color: #fb7185;
+            border: 1px solid rgba(225, 29, 72, 0.4);
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-role {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .user-panel {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0b0f19;
+            font-weight: 900;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+        }
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .user-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+        .user-sub {
+            font-size: 10px;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+        .btn-logout {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .input-group-custom {
+            margin-bottom: 12px;
+        }
+        .input-group-custom label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .input-group-custom input, .input-group-custom select {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            background: #090d16 !important;
+            border: 1px solid #334155 !important;
+            color: #38bdf8 !important;
+            font-family: monospace;
+            font-size: 12px !important;
+            padding: 8px 10px !important;
+            border-radius: 10px !important;
+            height: auto !important;
+        }
+        .input-group-custom select {
+            color: #fbbf24 !important;
+            font-weight: bold;
+        }
+        #btn_publish {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #e11d48, #be123c);
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+            transition: all 0.2s ease;
+        }
+        #btn_publish.publishing {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+        }
+        #rtc_media_player {
+            width: 100%;
+            max-height: 38vh;
+            background: #000;
+            border-radius: 14px;
+            border: 1px solid #334155;
+            margin-top: 12px;
+            object-fit: cover;
+        }
+        .status-box {
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .status-row:last-child {
+            margin-bottom: 0;
+        }
+        .status-label {
+            color: #94a3b8;
+        }
+        .status-val {
+            font-weight: 700;
+            color: #34d399;
+        }
+        #debug_log {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 4px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* LOGIN FORM STYLES */
+        .login-card {
+            background: #131b2e;
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 20px 16px;
+            max-width: 480px;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
+        }
+        .login-title {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .login-title h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+        .login-title p {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .btn-login-submit {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #090d16;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            margin-top: 8px;
+        }
+        .error-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .quick-accounts {
+            margin-top: 14px;
+            border-top: 1px solid #1e293b;
+            padding-top: 12px;
+        }
+        .quick-accounts-label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .quick-btn {
+            background: #090d16;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .quick-btn:active {
+            background: #1e293b;
+            border-color: #f59e0b;
+        }
+
+        /* KHU VỰC LIVE CHAT CHO STREAMER */
+        .chat-section {
+            margin-top: 16px;
+            background: #090d16;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 10px 14px;
+            background: #111827;
+            border-bottom: 1px solid #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .viewer-pill {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 99px;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .viewer-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #34d399;
+        }
+        .chat-messages {
+            height: 180px;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(11, 15, 25, 0.7);
+        }
+        .chat-bubble {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: 12px;
+            max-width: 90%;
+            align-self: flex-start;
+            word-break: break-word;
+        }
+        .chat-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .chat-user {
+            font-weight: 700;
+            color: #38bdf8;
+            font-size: 11px;
+        }
+        .chat-role-admin {
+            background: rgba(225, 29, 72, 0.2);
+            color: #fb7185;
+            border: 1px solid rgba(225, 29, 72, 0.4);
+            border-radius: 4px;
+            font-size: 9px;
+            padding: 0 4px;
+            font-weight: 700;
+        }
+        .chat-role-sysadmin {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 4px;
+            font-size: 9px;
+            padding: 0 4px;
+            font-weight: 700;
+        }
+        .chat-role-streamer {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 4px;
+            font-size: 9px;
+            padding: 0 4px;
+            font-weight: 700;
+        }
+        .chat-bubble-me {
+            border-color: rgba(225, 29, 72, 0.5) !important;
+            background: #1e1b2e !important;
+        }
+        .chat-user-me {
+            color: #fb7185 !important;
+        }
+        .chat-time {
+            color: #64748b;
+            font-size: 9px;
+            margin-left: auto;
+        }
+        .chat-text {
+            color: #f1f5f9;
+            line-height: 1.35;
+        }
+        .chat-input-bar {
+            display: flex;
+            gap: 6px;
+            padding: 10px;
+            background: #111827;
+            border-top: 1px solid #1f2937;
+        }
+        .chat-input-bar input {
+            flex: 1;
+            background: #0b0f19;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 10px;
+            font-size: 12px;
+            outline: none;
+        }
+        .chat-input-bar button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .reaction-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 10px;
+            background: #0d1322;
+            border-top: 1px solid #1e293b;
+        }
+        .reaction-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: transform 0.1s;
+        }
+        .reaction-btn:active {
+            transform: scale(1.3);
+        }
+    </style>
+</head>
+<body>
+
+<!-- MÀN HÌNH 1: ĐĂNG NHẬP DÀNH RIÊNG CHO ADMIN STREAMER TRÊN ĐIỆN THOẠI -->
+<div class="login-card" id="login_card">
+    <div class="login-title">
+        <div style="font-size: 32px; margin-bottom: 6px;">📱</div>
+        <h3>Studio Phát Sóng Di Động</h3>
+        <p>Đăng nhập tài khoản Admin để bắt đầu livestream</p>
+    </div>
+
+    <div class="error-alert" id="login_error"></div>
+
+    <form id="form_login">
+        <div class="input-group-custom">
+            <label>Tài khoản Admin:</label>
+            <input type="text" id="login_user" placeholder="Nhập username (vd: admin01, admin02...)" required autocomplete="username">
+        </div>
+
+        <div class="input-group-custom">
+            <label>Mật khẩu:</label>
+            <input type="password" id="login_pass" placeholder="Nhập mật khẩu..." required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn-login-submit" id="btn_login_submit">
+            🔐 ĐĂNG NHẬP VÀO STUDIO
+        </button>
+    </form>
+
+    <div class="quick-accounts">
+        <span class="quick-accounts-label">⚡ Điền nhanh tài khoản Admin có sẵn:</span>
+        <button type="button" class="quick-btn" onclick="fillLogin('admin02', '123456')">👑 admin02 (Giàng A Minh)</button>
+        <button type="button" class="quick-btn" onclick="fillLogin('admin01', '123456')">👑 admin01 (Quản trị 1)</button>
+    </div>
+</div>
+
+<!-- MÀN HÌNH 2: GIAO DIỆN PHÁT SÓNG TRỰC TIẾP (KHI ĐÃ ĐĂNG NHẬP) -->
+<div class="studio-card" id="studio_card" style="display: none;">
+    <div class="header-bar">
+        <h2>
+            <span>📱 Studio Di Động</span>
+        </h2>
+        <span class="badge-live">WebRTC HTTPS</span>
+    </div>
+
+    <!-- KHU VỰC THÔNG TIN STREAMER ĐANG ĐĂNG NHẬP -->
+    <div class="user-panel">
+        <div class="user-info">
+            <div class="user-avatar" id="disp_avatar">A</div>
+            <div class="user-details">
+                <span class="user-name" id="disp_fullname">Admin</span>
+                <span class="user-sub" id="disp_username">@admin</span>
+            </div>
+        </div>
+        <button class="btn-logout" id="btn_logout">Đổi Admin</button>
+    </div>
+
+    <!-- CHỌN KHÓA LUỒNG PHÁT SÓNG CỦA ADMIN NÀY -->
+    <div class="input-group-custom">
+        <label>Khóa luồng phát (Stream Key):</label>
+        <select id="sel_stream_key">
+            <!-- Tự động điền các khóa luồng Admin sở hữu -->
+        </select>
+    </div>
+
+    <div class="input-group-custom">
+        <label>Đường dẫn luồng WebRTC (Tự động tạo):</label>
+        <input type="text" id="txt_url" value="" readonly style="opacity: 0.85;">
+    </div>
+
+    <button id="btn_publish">🔴 BẮT ĐẦU PHÁT SÓNG</button>
+
+    <video id="rtc_media_player" autoplay muted playsinline webkit-playsinline></video>
+
+    <div class="status-box">
+        <div class="status-row">
+            <span class="status-label">Trạng thái phát:</span>
+            <span class="status-val" id="stream_state" style="color: #f59e0b;">Chưa phát</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Session ID:</span>
+            <span class="status-val" id="sessionid">--</span>
+        </div>
+        <div id="debug_log">Bấm "BẮT ĐẦU PHÁT SÓNG" để mở Camera và kết nối.</div>
+    </div>
+
+    <!-- TIỆN ÍCH BOT SEEDING DÀNH CHO ADMIN MOBILE (TỐI ĐA 5 CON) -->
+    <div class="bot-mobile-card" style="background: #090d16; border: 1px solid #1e293b; border-radius: 14px; padding: 12px; margin-top: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <div style="font-size: 12px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                <span>🤖 Bot Seeding Phòng Live</span>
+                <span id="bot_count_badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 10px; font-family: monospace; padding: 1px 6px; border-radius: 99px; font-weight: bold;">0/5</span>
+            </div>
+            <button id="btn_toggle_room_bots" style="background: #059669; color: #fff; border: none; border-radius: 8px; font-size: 11px; font-weight: 700; padding: 5px 10px; cursor: pointer; transition: all 0.2s;">
+                ▶️ BẬT BOT
+            </button>
+        </div>
+        <div style="font-size: 10px; color: #94a3b8; margin-bottom: 8px;">
+            Chọn tối đa 5 bot để tự động tương tác và chat vào phòng live của bạn:
+        </div>
+        <div id="mobile_bot_list" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+            <div style="font-size: 10px; color: #64748b; font-style: italic;">Đang tải danh sách bot...</div>
+        </div>
+        <div id="bot_mobile_status" style="font-size: 10px; color: #34d399; margin-top: 6px; display: none; font-weight: 600;"></div>
+    </div>
+
+    <!-- KHU VỰC LIVE CHAT ĐỌC TIN NHẮN NGƯỜI DÙNG -->
+    <div class="chat-section">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span>💬 Trò chuyện trực tiếp</span>
+                <span id="chat_status_indicator" style="font-size: 10px; color: #34d399; font-weight: 600; margin-left: 6px;">🟢 Trực tuyến</span>
+            </div>
+            <div class="viewer-pill">
+                <span class="viewer-dot"></span>
+                <span id="viewer_count">1</span> người xem
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat_messages">
+            <div class="chat-bubble" style="background: rgba(30, 41, 59, 0.5); border-style: dashed;">
+                <div class="chat-text" style="color: #94a3b8; font-size: 11px;">
+                    👋 Tin nhắn từ khán giả trên web sẽ hiển thị trực tiếp ở đây theo thời gian thực...
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh phản ứng cảm xúc nhanh -->
+        <div class="reaction-bar">
+            <button class="reaction-btn" data-emoji="❤️">❤️</button>
+            <button class="reaction-btn" data-emoji="🔥">🔥</button>
+            <button class="reaction-btn" data-emoji="👏">👏</button>
+            <button class="reaction-btn" data-emoji="👍">👍</button>
+            <button class="reaction-btn" data-emoji="🎉">🎉</button>
+        </div>
+
+        <!-- Thanh nhập chat phản hồi -->
+        <form id="chat_form" class="chat-input-bar">
+            <input type="text" id="chat_input" placeholder="Nhập tin nhắn trả lời..." autocomplete="off">
+            <button type="submit">Gửi</button>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+function fillLogin(u, p) {
+    $("#login_user").val(u);
+    $("#login_pass").val(p);
+}
+
+$(function(){
+    var sdk = null;
+    var isPublishing = false;
+    var chatSocket = null;
+    var currentAdmin = null;
+    var currentStreamKey = "";
+
+    var host = window.location.hostname || '192.168.1.48';
+
+    function log(msg) {
+        console.log(msg);
+        $("#debug_log").text(msg);
+    }
+
+    // ==================== XÁC THỰC QUA WEBSOCKET (BYPASS MIXED-CONTENT TRÊN SAFARI) ====================
+    function loginWithWebSocket(username, password) {
+        return new Promise(function(resolve, reject) {
+            var wsUrl = "ws://" + host + ":8000/ws/chat?streamKey=login_auth&guestName=AuthLogin";
+            var tempSocket = new WebSocket(wsUrl);
+            var timer = setTimeout(function() {
+                try { tempSocket.close(); } catch(e) {}
+                reject(new Error("Hết thời gian chờ kết nối xác thực!"));
+            }, 6000);
+
+            tempSocket.onopen = function() {
+                tempSocket.send(JSON.stringify({
+                    type: "auth_login",
+                    username: username,
+                    password: password
+                }));
+            };
+
+            tempSocket.onmessage = function(event) {
+                try {
+                    var data = JSON.parse(event.data);
+                    if (data.type === 'auth_login_result') {
+                        clearTimeout(timer);
+                        try { tempSocket.close(); } catch(e) {}
+                        if (data.success) {
+                            resolve(data);
+                        } else {
+                            reject(new Error(data.error || "Tên đăng nhập hoặc mật khẩu không chính xác!"));
+                        }
+                    }
+                } catch(e) {
+                    clearTimeout(timer);
+                    reject(e);
+                }
+            };
+
+            tempSocket.onerror = function() {
+                clearTimeout(timer);
+                reject(new Error("Không thể kết nối tới server (ws://" + host + ":8000)"));
+            };
+        });
+    }
+
+    // ==================== QUẢN LÝ ĐĂNG NHẬP / PHIÊN LÀM VIỆC ====================
+    function checkExistingAuth() {
+        var savedUser = localStorage.getItem('streamer_user');
+        var savedToken = localStorage.getItem('streamer_token');
+        var savedKey = localStorage.getItem('streamer_key');
+        var savedKeys = localStorage.getItem('streamer_keys');
+
+        if (savedUser && savedToken) {
+            try {
+                var userObj = JSON.parse(savedUser);
+                if (userObj.role === 'admin') {
+                    var keysArr = savedKeys ? JSON.parse(savedKeys) : [];
+                    renderStudio(userObj, savedKey, keysArr);
+                    return;
+                }
+            } catch(e) {}
+        }
+        // Chưa đăng nhập -> Hiện form Login
+        $("#login_card").show();
+        $("#studio_card").hide();
+    }
+
+    // Xử lý gửi form Đăng nhập
+    $("#form_login").submit(async function(e) {
+        e.preventDefault();
+        $("#login_error").hide().text("");
+        $("#btn_login_submit").text("⏳ Đang kiểm tra...").prop("disabled", true);
+
+        var username = $("#login_user").val().trim();
+        var password = $("#login_pass").val();
+
+        try {
+            var data = null;
+
+            // 1. Thử xác thực siêu tốc qua WebSocket trước (hoạt động 100% trên Safari/Chrome Mobile không lo SSL)
+            try {
+                data = await loginWithWebSocket(username, password);
+            } catch(wsErr) {
+                console.log("WebSocket login fallback to HTTP...", wsErr);
+                // 2. Fallback sang HTTP fetch cổng 8000
+                var res = await fetch("http://" + host + ":8000/api/auth/login", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+                var httpData = await res.json();
+                if (!res.ok) {
+                    throw new Error(httpData.error || "Tên đăng nhập hoặc mật khẩu không chính xác!");
+                }
+                data = httpData;
+            }
+
+            if (!data || !data.user) {
+                throw new Error("Không nhận được dữ liệu xác thực từ server!");
+            }
+
+            // KIỂM TRA ROLE: CHỈ ADMIN MỚI ĐƯỢC PHÁT SÓNG
+            if (data.user.role === 'systemadmin') {
+                throw new Error("⛔ Tài khoản SystemAdmin (Tổng Quản Trị) không có quyền phát sóng! Vui lòng dùng tài khoản Admin (như admin01, admin02...).");
+            }
+            if (data.user.role !== 'admin') {
+                throw new Error("⛔ Tài khoản này là Người xem (User). Chỉ có tài khoản vai trò Admin mới được livestream!");
+            }
+
+            // Lưu phiên đăng nhập
+            localStorage.setItem('streamer_token', data.token);
+            localStorage.setItem('streamer_user', JSON.stringify(data.user));
+            localStorage.setItem('streamer_key', data.stream_key || data.user.username);
+            localStorage.setItem('streamer_keys', JSON.stringify(data.stream_keys || []));
+
+            renderStudio(data.user, data.stream_key || data.user.username, data.stream_keys || []);
+        } catch(err) {
+            $("#login_error").text(err.message).show();
+        } finally {
+            $("#btn_login_submit").text("🔐 ĐĂNG NHẬP VÀO STUDIO").prop("disabled", false);
+        }
+    });
+
+    // Đăng xuất / Đổi tài khoản
+    $("#btn_logout").click(function() {
+        if (isPublishing) {
+            alert("Vui lòng dừng phát sóng trước khi đổi tài khoản!");
+            return;
+        }
+        if (chatSocket) {
+            try { chatSocket.close(); } catch(e) {}
+        }
+        localStorage.removeItem('streamer_token');
+        localStorage.removeItem('streamer_user');
+        localStorage.removeItem('streamer_key');
+        localStorage.removeItem('streamer_keys');
+        currentAdmin = null;
+        currentStreamKey = "";
+        $("#login_card").show();
+        $("#studio_card").hide();
+    });
+
+    // Hiển thị Studio sau khi đăng nhập thành công
+    function renderStudio(user, defaultKey, keysList) {
+        currentAdmin = user;
+        $("#disp_avatar").text(user.username.substring(0, 1));
+        $("#disp_fullname").text(user.full_name || user.username);
+        $("#disp_username").text("@" + user.username + " (Admin Streamer)");
+
+        // Cập nhật danh sách khóa luồng mà Admin sở hữu
+        var $select = $("#sel_stream_key").empty();
+        var keyToSelect = defaultKey || user.username;
+
+        if (keysList && keysList.length > 0) {
+            keysList.forEach(function(k) {
+                var label = k.title ? k.title + " (" + k.key + ")" : k.key;
+                var opt = $('<option>').val(k.key).text("📡 " + label);
+                if (k.key === defaultKey) opt.prop("selected", true);
+                $select.append(opt);
+            });
+            keyToSelect = $select.val() || defaultKey;
+        } else {
+            $select.append($('<option>').val(keyToSelect).text("📡 " + keyToSelect));
+        }
+
+        currentStreamKey = keyToSelect;
+        updateStreamUrl(currentStreamKey);
+
+        $("#login_card").hide();
+        $("#studio_card").show();
+
+        // Khởi động WebSocket Chat theo kênh của Admin này
+        initChat(currentStreamKey);
+
+        // Tải bot seeding cho phòng live này
+        loadMobileBots(currentStreamKey);
+    }
+
+    // Khi chọn đổi khóa luồng trong dropdown
+    $("#sel_stream_key").change(function() {
+        if (isPublishing) {
+            alert("Đang phát sóng! Hãy bấm 'DỪNG PHÁT SÓNG' trước khi đổi kênh.");
+            $("#sel_stream_key").val(currentStreamKey);
+            return;
+        }
+        currentStreamKey = $(this).val();
+        localStorage.setItem('streamer_key', currentStreamKey);
+        updateStreamUrl(currentStreamKey);
+        initChat(currentStreamKey);
+        loadMobileBots(currentStreamKey);
+    });
+
+    function updateStreamUrl(key) {
+        var cleanUrl = "webrtc://" + host + ":8088/live/" + key + "?api=8088";
+        $("#txt_url").val(cleanUrl);
+        log("Đã chọn luồng: " + key);
+    }
+
+    // ==================== QUẢN LÝ BOT SEEDING CHO PHÒNG LIVE ====================
+    var mobileAvailableBots = [];
+    var mobileSelectedBotIds = [];
+    var isMobileBotsRunning = false;
+
+    async function loadMobileBots(streamKey) {
+        if (!streamKey) return;
+        var token = localStorage.getItem('streamer_token') || "";
+        try {
+            // 1. Tải danh sách bot khả dụng
+            var resBots = await fetch("http://" + host + ":8000/api/admin/bots", {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (resBots.ok) {
+                mobileAvailableBots = await resBots.json();
+            }
+
+            // 2. Tải cấu hình bot hiện tại của phòng
+            var resRoom = await fetch("http://" + host + ":8000/api/admin/room-bots?streamKey=" + encodeURIComponent(streamKey), {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (resRoom.ok) {
+                var roomData = await resRoom.json();
+                mobileSelectedBotIds = (roomData.bot_ids || []).map(function(id) {
+                    return typeof id === 'object' && id.$oid ? id.$oid : String(id);
+                });
+                isMobileBotsRunning = !!roomData.is_running;
+            }
+
+            renderMobileBotsList();
+        } catch(e) {
+            console.error("Lỗi tải bot mobile:", e);
+        }
+    }
+
+    function renderMobileBotsList() {
+        var $list = $("#mobile_bot_list").empty();
+        $("#bot_count_badge").text(mobileSelectedBotIds.length + "/5");
+
+        if (isMobileBotsRunning) {
+            $("#btn_toggle_room_bots").text("⏹️ DỪNG BOT").css("background", "#dc2626");
+            $("#bot_mobile_status").text("🟢 Đang chạy " + mobileSelectedBotIds.length + " bot trong phòng!").show();
+        } else {
+            $("#btn_toggle_room_bots").text("▶️ BẬT BOT").css("background", "#059669");
+            if (mobileSelectedBotIds.length > 0) {
+                $("#bot_mobile_status").text("Đã chọn " + mobileSelectedBotIds.length + " bot. Bấm 'BẬT BOT' để kích hoạt.").show();
+            } else {
+                $("#bot_mobile_status").hide();
+            }
+        }
+
+        if (!mobileAvailableBots || mobileAvailableBots.length === 0) {
+            $list.append($('<div style="font-size:10px; color:#64748b;">Chưa có bot khả dụng nào.</div>'));
+            return;
+        }
+
+        mobileAvailableBots.forEach(function(bot) {
+            var botId = String(bot.id);
+            var isChecked = mobileSelectedBotIds.indexOf(botId) !== -1;
+            var isLimit = (mobileSelectedBotIds.length >= 5) && !isChecked;
+
+            var $row = $('<div style="display:flex; align-items:center; justify-content:space-between; background:#111827; border:1px solid #1f2937; padding:6px 8px; border-radius:8px;"></div>');
+            if (isChecked) {
+                $row.css({ "border-color": "#38bdf8", "background": "rgba(56, 189, 248, 0.1)" });
+            } else if (isLimit) {
+                $row.css("opacity", "0.45");
+            }
+
+            var $left = $('<div style="display:flex; align-items:center; gap:8px;"></div>');
+            $left.append($('<span style="font-size:14px;"></span>').text(bot.avatar || "🤖"));
+            
+            var $info = $('<div></div>');
+            var $title = $('<div style="font-size:11px; font-weight:700; color:#fff;"></div>').text(bot.name);
+            if (bot.role === 'vip') {
+                $title.append($('<span style="font-size:9px; color:#f59e0b; margin-left:4px;">VIP 👑</span>'));
+            }
+            var $sub = $('<div style="font-size:9px; color:#94a3b8;"></div>').text("⏱️ " + (bot.interval || 15) + "s/câu • " + (bot.messages ? bot.messages.length : 0) + " câu chat");
+            $info.append($title).append($sub);
+            $left.append($info);
+
+            var $check = $('<input type="checkbox" style="width:16px; height:16px; cursor:pointer;">')
+                .prop("checked", isChecked)
+                .prop("disabled", isLimit);
+
+            $check.change(function() {
+                if ($(this).is(":checked")) {
+                    if (mobileSelectedBotIds.length >= 5) {
+                        alert("⛔ Mỗi phòng live chỉ được chọn tối đa 5 bot!");
+                        $(this).prop("checked", false);
+                        return;
+                    }
+                    mobileSelectedBotIds.push(botId);
+                } else {
+                    mobileSelectedBotIds = mobileSelectedBotIds.filter(function(id) { return id !== botId; });
+                }
+                renderMobileBotsList();
+            });
+
+            $row.append($left).append($check);
+            $list.append($row);
+        });
+    }
+
+    $("#btn_toggle_room_bots").click(async function() {
+        var token = localStorage.getItem('streamer_token') || "";
+        var newState = !isMobileBotsRunning;
+
+        if (newState && mobileSelectedBotIds.length === 0) {
+            alert("Vui lòng tick chọn ít nhất 1 bot (tối đa 5 con) trước khi bật!");
+            return;
+        }
+
+        if (mobileSelectedBotIds.length > 5) {
+            alert("⛔ Chỉ được chọn tối đa 5 bot!");
+            return;
+        }
+
+        try {
+            var res = await fetch("http://" + host + ":8000/api/admin/room-bots", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + token
+                },
+                body: JSON.stringify({
+                    stream_key: currentStreamKey,
+                    bot_ids: mobileSelectedBotIds,
+                    is_running: newState
+                })
+            });
+
+            if (res.ok) {
+                isMobileBotsRunning = newState;
+                renderMobileBotsList();
+            } else {
+                var d = await res.json();
+                alert(d.error || "Lỗi cập nhật bot");
+            }
+        } catch(e) {
+            alert("Lỗi kết nối máy chủ");
+        }
+    });
+
+    // ==================== KẾT NỐI WEBSOCKET LIVE CHAT ====================
+    var chatReconnectTimer = null;
+
+    function appendChatMessage(msg) {
+        var timeStr = "";
+        if (msg.created_at) {
+            var d = new Date(msg.created_at);
+            timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        } else {
+            var d = new Date();
+            timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        }
+
+        var isMe = currentAdmin && (msg.username === currentAdmin.username || (currentAdmin.full_name && msg.username === currentAdmin.full_name));
+
+        var roleBadge = "";
+        if (msg.role === 'systemadmin') {
+            roleBadge = '<span class="chat-role-sysadmin">SYSADMIN</span>';
+        } else if (msg.role === 'admin' || isMe) {
+            roleBadge = '<span class="chat-role-admin">ADMIN</span>';
+        } else if (msg.role === 'streamer') {
+            roleBadge = '<span class="chat-role-streamer">STREAMER</span>';
+        }
+
+        var userLabel = (msg.username || 'Khán giả') + (isMe ? ' (Bạn)' : '');
+
+        var html = '<div class="chat-bubble ' + (isMe ? 'chat-bubble-me' : '') + '">' +
+            '<div class="chat-meta">' +
+                '<span class="chat-user ' + (isMe ? 'chat-user-me' : '') + '">' + $('<div>').text(userLabel).html() + '</span>' +
+                roleBadge +
+                '<span class="chat-time">' + timeStr + '</span>' +
+            '</div>' +
+            '<div class="chat-text">' + $('<div>').text(msg.message || '').html() + '</div>' +
+        '</div>';
+
+        $("#chat_messages").append(html);
+        var chatBox = document.getElementById("chat_messages");
+        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function initChat(keyName) {
+        if (!keyName) return;
+
+        if (chatReconnectTimer) {
+            clearTimeout(chatReconnectTimer);
+            chatReconnectTimer = null;
+        }
+
+        if (chatSocket) {
+            try { 
+                chatSocket.onclose = null; 
+                chatSocket.close(); 
+            } catch(e) {}
+            chatSocket = null;
+        }
+        $("#chat_messages").empty();
+
+        var savedToken = localStorage.getItem('streamer_token') || '';
+        var senderName = currentAdmin ? (currentAdmin.full_name || currentAdmin.username) : 'Admin_Mobile';
+        
+        // Luôn truyền token vào query URL để Go Backend nhận diện đúng Admin ngay từ đầu
+        var wsUrl = "ws://" + host + ":8000/ws/chat?streamKey=" + encodeURIComponent(keyName) + 
+                    "&token=" + encodeURIComponent(savedToken) + 
+                    "&guestName=" + encodeURIComponent(senderName) +
+                    "&sender=" + encodeURIComponent(senderName) + 
+                    "&role=admin";
+
+        try {
+            chatSocket = new WebSocket(wsUrl);
+
+            chatSocket.onopen = function() {
+                console.log("💬 Đã kết nối Live Chat phòng: " + keyName);
+                $("#chat_status_indicator").text("🟢 Trực tuyến").css("color", "#34d399");
+
+                // Gửi xác thực socket ngay sau khi kết nối thành công
+                if (savedToken) {
+                    chatSocket.send(JSON.stringify({
+                        type: "auth_token",
+                        token: savedToken
+                    }));
+                }
+            };
+
+            chatSocket.onmessage = function(event) {
+                try {
+                    var rawLines = event.data.split('\n');
+                    for (var i = 0; i < rawLines.length; i++) {
+                        var line = rawLines[i].trim();
+                        if (!line) continue;
+                        var data = JSON.parse(line);
+
+                        if (data.type === 'history' && Array.isArray(data.history)) {
+                            $("#chat_messages").empty();
+                            data.history.forEach(function(m) {
+                                appendChatMessage(m);
+                            });
+                        } else if (data.type === 'chat' && data.data) {
+                            appendChatMessage(data.data);
+                        } else if (data.type === 'viewer_count' && typeof data.viewer_count === 'number') {
+                            $("#viewer_count").text(data.viewer_count);
+                        } else if (data.type === 'reaction') {
+                            appendChatMessage({
+                                username: data.sender || 'Khán giả',
+                                message: data.emoji || '❤️',
+                                role: 'guest'
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.error("Lỗi parse WS message:", e);
+                }
+            };
+
+            chatSocket.onclose = function() {
+                console.log("WebSocket chat đóng. Đang thử kết nối lại sau 2.5s...");
+                $("#chat_status_indicator").text("🟡 Đang kết nối lại...").css("color", "#f59e0b");
+                chatReconnectTimer = setTimeout(function() {
+                    if (currentStreamKey) initChat(currentStreamKey);
+                }, 2500);
+            };
+
+            chatSocket.onerror = function(err) {
+                console.warn("Lỗi WebSocket chat:", err);
+            };
+        } catch(e) {
+            console.error("Lỗi khởi tạo WebSocket:", e);
+        }
+    }
+
+    // Gửi tin nhắn từ Streamer (kèm token để đảm bảo danh tính Admin)
+    $("#chat_form").submit(function(e) {
+        e.preventDefault();
+        var text = $("#chat_input").val().trim();
+        if (!text) return;
+
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            var savedToken = localStorage.getItem('streamer_token') || '';
+            chatSocket.send(JSON.stringify({
+                type: "chat",
+                message: text,
+                token: savedToken,
+                sender: currentAdmin ? (currentAdmin.full_name || currentAdmin.username) : 'Admin',
+                username: currentAdmin ? currentAdmin.username : '',
+                role: "admin"
+            }));
+            $("#chat_input").val("");
+        } else {
+            alert("Chưa kết nối được kênh chat, đang tự động kết nối lại...");
+            if (currentStreamKey) initChat(currentStreamKey);
+        }
+    });
+
+    // Thả cảm xúc nhanh
+    $(".reaction-btn").click(function() {
+        var emoji = $(this).data("emoji");
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                type: "reaction",
+                emoji: emoji
+            }));
+        }
+    });
+
+    // ==================== BẮT ĐẦU / DỪNG PHÁT SÓNG WEBRTC ====================
+    var startPublish = async function() {
+        if (isPublishing) {
+            // Dừng phát sóng
+            if (sdk) sdk.close();
+            sdk = null;
+            isPublishing = false;
+            $("#btn_publish").text("🔴 BẮT ĐẦU PHÁT SÓNG").removeClass("publishing");
+            $("#stream_state").text("Đã dừng phát").css("color", "#f59e0b");
+            $("#sessionid").text("--");
+            $('#rtc_media_player').hide();
+            log("Đã dừng phát sóng.");
+            return;
+        }
+
+        try {
+            $("#btn_publish").text("⏳ Đang xin quyền Camera...").prop("disabled", true);
+            $("#stream_state").text("Đang xin quyền Camera...").css("color", "#38bdf8");
+            log("1. Đang mở Camera điện thoại...");
+
+            if (sdk) sdk.close();
+            sdk = new SrsRtcPublisherAsync();
+
+            $('#rtc_media_player').show();
+            $('#rtc_media_player').prop('srcObject', sdk.stream);
+
+            var url = $("#txt_url").val().trim();
+            log("2. Đang kết nối tới SRS (" + url + ")...");
+            $("#stream_state").text("Đang gửi tín hiệu WebRTC...").css("color", "#38bdf8");
+
+            const session = await sdk.publish(url);
+            isPublishing = true;
+            $("#btn_publish").text("⏹ DỪNG PHÁT SÓNG").addClass("publishing").prop("disabled", false);
+            $("#stream_state").text("🟢 ĐANG PHÁT TRỰC TIẾP").css("color", "#34d399");
+            $('#sessionid').html(session.sessionid);
+            log("Thành công! Session ID: " + session.sessionid);
+        } catch (reason) {
+            isPublishing = false;
+            $("#btn_publish").text("🔴 BẮT ĐẦU PHÁT SÓNG").removeClass("publishing").prop("disabled", false);
+            $("#stream_state").text("Lỗi kết nối").css("color", "#ef4444");
+
+            var errMsg = reason.message || reason.name || JSON.stringify(reason);
+            log("Lỗi: " + errMsg);
+
+            if (reason instanceof DOMException && reason.name === 'NotAllowedError') {
+                alert("Bạn đã chặn quyền Camera trên điện thoại. Hãy vào Cài đặt trình duyệt để Cho phép.");
+            } else {
+                alert("Lỗi kết nối: " + errMsg);
+            }
+
+            if (sdk) sdk.close();
+            $('#rtc_media_player').hide();
+        }
+    };
+
+    $('#rtc_media_player').hide();
+    $("#btn_publish").click(startPublish);
+
+    // Bắt đầu kiểm tra phiên đăng nhập
+    checkExistingAuth();
+});
+</script>
+</body>
+</html>
