@@ -1,25 +1,63 @@
+# ==============================================================================
+# PRODUCTION STACK - chạy trên VPS
+# Backend & Frontend được build sẵn bởi GitHub Actions (repo traiga_be / traiga_fe)
+# và đẩy lên Docker Hub. VPS chỉ cần `docker compose pull` rồi `up -d`.
+#
+# Chạy local (chỉ SRS, BE chạy trên máy): docker compose -f docker-compose.dev.yml up -d
+# ==============================================================================
 services:
-  srs-media-server:
+  # 1. Golang Backend (REST API, Auth Webhook, Live Chat WebSocket)
+  backend:
+    image: ${DOCKER_HUB_USER}/traiga-be:latest
+    container_name: traiga-backend
+    restart: always
+    env_file: .env
+    environment:
+      - PORT=8000
+      - ENV=production
+      - TRUST_PROXY=true
+    expose:
+      - "8000"
+    networks:
+      - live_network
+
+  # 2. SRS 5 Media Server (RTMP ingest, HLS & WebRTC)
+  srs:
     image: ossrs/srs:5
-    container_name: srs-media-server
+    container_name: traiga-srs
     restart: always
     command: ["./objs/srs", "-c", "conf/srs.conf"]
     ports:
-      - "1935:1935"      # RTMP Ingest (từ OBS)
-      - "1985:1985"      # SRS HTTP API / WebRTC Signaling
-      - "1990:1990"      # SRS HTTPS API
-      - "8080:8080"      # HLS / HTTP Server phân phối video
-      - "8088:8088"      # HLS / HTTPS Server
-      - "443:8088"       # Port HTTPS chuẩn (WebRTC SDK mặc định gọi port 443)
-      - "8000:8000/udp"  # WebRTC Media Transport qua UDP
+      - "1935:1935"      # RTMP ingest (OBS, vMix)
+      - "8088:8088"      # SRS HTTPS (WebRTC publish trực tiếp)
+      - "8000:8000/udp"  # WebRTC media (UDP)
     environment:
-      # Địa chỉ IP để client WebRTC (điện thoại/web) kết nối tới
-      - CANDIDATE=${CANDIDATE:-192.168.1.48}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "backend:host-gateway"
+      - CANDIDATE=${CANDIDATE}   # IP public của VPS
     volumes:
-      - ./srs.conf:/usr/local/srs/conf/srs.conf
-      - ./srs.conf:/usr/local/srs/conf/docker.conf
-      - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/players/rtc_publisher.html
-      - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/rtc_publisher.html
+      - ./srs.conf:/usr/local/srs/conf/srs.conf:ro
+      - ./srs.conf:/usr/local/srs/conf/docker.conf:ro
+      - ./certs/server.crt:/usr/local/srs/conf/server.crt:ro
+      - ./certs/server.key:/usr/local/srs/conf/server.key:ro
+      - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/players/rtc_publisher.html:ro
+      - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/rtc_publisher.html:ro
+    depends_on:
+      - backend
+    networks:
+      - live_network
+
+  # 3. React Frontend + Nginx (reverse proxy /api, /ws, /live, /rtc)
+  frontend:
+    image: ${DOCKER_HUB_USER}/traiga-fe:latest
+    container_name: traiga-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - srs
+    networks:
+      - live_network
+
+networks:
+  live_network:
+    driver: bridge

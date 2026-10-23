@@ -1,5 +1,6 @@
 tmp/hls/*
 !tmp/hls/.gitkeep
+certs/
 *.key
 *.pem
 .env
