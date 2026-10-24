@@ -17,15 +17,16 @@ services:
       - |
         mkdir -p ./objs/nginx/html/record/live
         (while true; do find ./objs/nginx/html/record -type f -name "*.mp4" -mmin +180 -delete 2>/dev/null; sleep 600; done) &
-        sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
+        sed -e "s#__BACKEND_URL__#$$BACKEND_URL#g" -e "s#__SRS_WEBHOOK_SECRET__#$$SRS_WEBHOOK_SECRET#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
     ports:
       - "1935:1935"      # RTMP ingest (OBS, vMix)
       - "8080:8080"      # SRS HTTP (HLS & WebRTC signaling)
       - "8088:8088"      # SRS HTTPS (HLS & WebRTC publish trực tiếp)
       - "8000:8000/udp"  # WebRTC media (UDP)
     environment:
-      - CANDIDATE=${CANDIDATE}       # IP public của VPS
-      - BACKEND_URL=${BACKEND_URL}   # URL backend Azure (webhook xác thực stream key)
+      - CANDIDATE=${CANDIDATE}                   # IP public của VPS
+      - BACKEND_URL=${BACKEND_URL}               # URL backend Azure (webhook xác thực stream key)
+      - SRS_WEBHOOK_SECRET=${SRS_WEBHOOK_SECRET} # Secret xác thực SRS Webhook với Backend
     volumes:
       - ./srs.conf:/usr/local/srs/conf/srs.conf.tpl:ro
       - ./certs/server.crt:/usr/local/srs/conf/server.crt:ro
