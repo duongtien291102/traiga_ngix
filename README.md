@@ -29,18 +29,23 @@ sudo chown -R $USER /opt/traiga && cd /opt/traiga
 # 3. Tạo .env
 cp .env.example .env && nano .env
 
-# 4. Tạo chứng chỉ HTTPS cho SRS (self-signed, hoặc thay bằng Let's Encrypt)
+# 4. Đặt chứng chỉ TLS công khai cho SRS (backend và trình duyệt phải tin cậy chứng chỉ)
 mkdir -p certs
-openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
-  -keyout certs/server.key -out certs/server.crt -subj "/CN=traiga"
+# Sao chép chứng chỉ Let's Encrypt cho domain trỏ về VPS:
+cp /etc/letsencrypt/live/<DOMAIN>/fullchain.pem certs/fullchain.pem
+cp /etc/letsencrypt/live/<DOMAIN>/privkey.pem certs/privkey.pem
 
 # 5. Chạy (cần đã push BE & FE ít nhất 1 lần để có image trên Docker Hub)
 docker compose pull && docker compose up -d
 ```
 
-Mở firewall: `80/tcp`, `1935/tcp`, `8088/tcp`, `8000/udp`.
+Mở firewall: `80/tcp`, `1935/tcp`, `8080/tcp`, `8088/tcp`, `1985/tcp`, `8000/udp`.
 
-## GitHub Secrets (thêm vào **cả 3 repo**)
+SRS giữ các file DVR trong volume Docker `traiga_recordings`. Backend Azure đọc file qua URL trong `SRS_HTTP_URL` (ví dụ `https://<DOMAIN>:8088`). Trong GitHub repo BE → Settings → Secrets and variables → Actions → Variables, đặt `SRS_HTTP_URL` bằng URL chứng chỉ đó. Không dùng IP nếu chứng chỉ được cấp cho domain.
+
+Để tự tải replay lên Google Drive, thêm `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`, `GOOGLE_DRIVE_REFRESH_TOKEN` (và tùy chọn `GOOGLE_DRIVE_FOLDER_ID`) vào GitHub Secrets của repo backend. Quyền chia sẻ Anyone with link được dùng để phát video trên trang.
+
+## GitHub Secrets (repo ngix và backend)
 
 | Secret | Giá trị |
 |---|---|
@@ -50,6 +55,10 @@ Mở firewall: `80/tcp`, `1935/tcp`, `8088/tcp`, `8000/udp`.
 | `SERVER_PORT` | (tuỳ chọn) mặc định 22 |
 | `DOCKER_HUB_USER` | username Docker Hub (chỉ cần ở BE, FE) |
 | `DOCKER_HUB_TOKEN` | access token Docker Hub (chỉ cần ở BE, FE) |
+| `GOOGLE_DRIVE_CLIENT_ID` | OAuth client ID (BE) |
+| `GOOGLE_DRIVE_CLIENT_SECRET` | OAuth client secret (BE) |
+| `GOOGLE_DRIVE_REFRESH_TOKEN` | Refresh token có quyền ghi Drive (BE) |
+| `GOOGLE_DRIVE_FOLDER_ID` | (tuỳ chọn) thư mục đích (BE) |
 
 ## Chạy local
 
