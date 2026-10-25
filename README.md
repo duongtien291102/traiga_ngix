@@ -12,9 +12,9 @@ Repo hạ tầng / deploy cho hệ thống Traiga Livestream: cấu hình SRS me
 
 - Push `traiga_be` → test → build image → push Docker Hub → VPS restart **chỉ backend**
 - Push `traiga_fe` → build → push Docker Hub → VPS restart **chỉ frontend**
-- Push `traiga_ngix` → VPS `git pull` → restart cả stack
+- Push `traiga_ngix` → VPS `git pull` → build SRS image with FFmpeg → restart SRS
 
-VPS không build gì, chỉ `docker pull` image → dùng được VPS cấu hình nhỏ.
+VPS builds the SRS image locally to install FFmpeg/ffprobe. Keep `ABR_ENABLED=off` until the VPS has been sized for the extra CPU load; switch it to `on` in `.env` to produce 720p/480p/360p renditions and serve the multivariant playlist. The source rendition remains available at its incoming resolution. Software encoding is CPU intensive, especially for 60 FPS and multiple simultaneous rooms.
 
 ## Cài đặt VPS lần đầu (Ubuntu)
 
@@ -36,8 +36,12 @@ cp /etc/letsencrypt/live/<DOMAIN>/fullchain.pem certs/fullchain.pem
 cp /etc/letsencrypt/live/<DOMAIN>/privkey.pem certs/privkey.pem
 
 # 5. Chạy (cần đã push BE & FE ít nhất 1 lần để có image trên Docker Hub)
-docker compose pull && docker compose up -d
+docker compose build --pull srs && docker compose up -d
 ```
+
+The React player uses HLS.js adaptive bitrate selection and offers Auto plus the renditions present in the master playlist. On Safari, native HLS keeps automatic quality switching; the quality menu can switch to a rendition listed in the master playlist.
+
+The SRS container is the origin; a CDN is not provisioned by this repository. For large audiences, point a CDN hostname at the SRS HLS origin, route both `/live/*` and `/abr/*`, cache `.ts` segments briefly (about 3 seconds), and bypass cache for `.m3u8` playlists. Set the FE build variable `VITE_HLS_URL` to the CDN origin so the master playlist and all rendition requests use it.
 
 Mở firewall: `80/tcp`, `1935/tcp`, `8080/tcp`, `8088/tcp`, `1985/tcp`, `8000/udp`.
 

@@ -1,0 +1,6 @@
+.git
+.env
+certs
+tmp
+*.mp4
+*.log

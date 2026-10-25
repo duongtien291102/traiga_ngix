@@ -595,6 +595,8 @@ $(function(){
     var chatSocket = null;
     var currentAdmin = null;
     var currentStreamKey = "";
+    var publishSecrets = {};
+    var currentPublishUrl = "";
 
     var host = window.location.hostname || '192.168.1.48';
 
@@ -658,6 +660,13 @@ $(function(){
                 var userObj = JSON.parse(savedUser);
                 if (userObj.role === 'admin') {
                     var keysArr = savedKeys ? JSON.parse(savedKeys) : [];
+                if (!keysArr.some(function(k) { return k && k.key && k.publish_secret; })) {
+                    localStorage.removeItem('streamer_token');
+                    localStorage.removeItem('streamer_user');
+                    localStorage.removeItem('streamer_key');
+                    localStorage.removeItem('streamer_keys');
+                    throw new Error("Cần đăng nhập lại để tải khóa phát an toàn mới.");
+                }
                     renderStudio(userObj, savedKey, keysArr);
                     return;
                 }
@@ -737,6 +746,8 @@ $(function(){
         localStorage.removeItem('streamer_user');
         localStorage.removeItem('streamer_key');
         localStorage.removeItem('streamer_keys');
+        publishSecrets = {};
+        currentPublishUrl = "";
         currentAdmin = null;
         currentStreamKey = "";
         $("#login_card").show();
@@ -746,6 +757,11 @@ $(function(){
     // Hiển thị Studio sau khi đăng nhập thành công
     function renderStudio(user, defaultKey, keysList) {
         currentAdmin = user;
+        publishSecrets = Object.fromEntries(
+            (keysList || [])
+                .filter(function(k) { return k && k.key && k.publish_secret; })
+                .map(function(k) { return [k.key, k.publish_secret]; })
+        );
         $("#disp_avatar").text(user.username.substring(0, 1));
         $("#disp_fullname").text(user.full_name || user.username);
         $("#disp_username").text("@" + user.username + " (Admin Streamer)");
@@ -794,8 +810,15 @@ $(function(){
     });
 
     function updateStreamUrl(key) {
-        var cleanUrl = "webrtc://" + host + ":8088/live/" + key + "?api=8088";
-        $("#txt_url").val(cleanUrl);
+        var publishSecret = publishSecrets[key];
+        if (!publishSecret) {
+            currentPublishUrl = "";
+            $("#txt_url").val("");
+            log("Chưa có khóa phát an toàn. Hãy đăng xuất rồi đăng nhập lại.");
+            return;
+        }
+        currentPublishUrl = "webrtc://" + host + ":8088/live/" + encodeURIComponent(key) + "?api=8088&publish_secret=" + encodeURIComponent(publishSecret);
+        $("#txt_url").val("webrtc://" + host + ":8088/live/" + encodeURIComponent(key) + "?api=8088&publish_secret=••••••••");
         log("Đã chọn luồng: " + key);
     }
 
@@ -1131,8 +1154,8 @@ $(function(){
             $('#rtc_media_player').show();
             $('#rtc_media_player').prop('srcObject', sdk.stream);
 
-            var url = $("#txt_url").val().trim();
-            log("2. Đang kết nối tới SRS (" + url + ")...");
+            var url = currentPublishUrl;
+            log("2. Đang kết nối tới SRS...");
             $("#stream_state").text("Đang gửi tín hiệu WebRTC...").css("color", "#38bdf8");
 
             const session = await sdk.publish(url);

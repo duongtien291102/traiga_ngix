@@ -33,6 +33,6 @@ jobs:
             set -e
             cd /opt/traiga
             git pull --ff-only
-            docker compose pull srs
+            docker compose build --pull srs
             docker compose up -d --force-recreate srs
             docker image prune -f

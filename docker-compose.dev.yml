@@ -1,12 +1,15 @@
 services:
   srs-media-server:
-    image: ossrs/srs:5
+    image: traiga-srs:abr
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: srs-media-server
     restart: always
     # Sinh conf/srs.conf từ template, thay __BACKEND_URL__ bằng biến BACKEND_URL
     entrypoint: ["/bin/sh", "-c"]
     command:
-      - sed "s#__BACKEND_URL__#$$BACKEND_URL#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
+      - sed -e "s#__BACKEND_URL__#$$BACKEND_URL#g" -e "s#__ABR_ENABLED__#$$ABR_ENABLED#g" conf/srs.conf.tpl > conf/srs.conf && exec ./objs/srs -c conf/srs.conf
     ports:
       - "1935:1935"      # RTMP Ingest (từ OBS)
       - "1985:1985"      # SRS HTTP API / WebRTC Signaling
@@ -20,6 +23,7 @@ services:
       - CANDIDATE=${CANDIDATE:-192.168.1.204}
       # Backend Go chạy trên Azure Container Apps (xác thực stream key & kết thúc phiên live)
       - BACKEND_URL=${BACKEND_URL:-https://demo-webtraiga.proudsky-59d95604.southeastasia.azurecontainerapps.io}
+      - ABR_ENABLED=${ABR_ENABLED:-off}
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "backend:host-gateway"
