@@ -48,6 +48,7 @@ services:
       - ABR_ENABLED=${ABR_ENABLED:-off}           # Bật transcoding nhiều mức khi VPS đủ CPU
     volumes:
       - ./srs.conf:/usr/local/srs/conf/srs.conf.tpl:ro
+      - ./normalize-recording.sh:/usr/local/bin/normalize-recording.sh:ro
       - ./certs/fullchain.pem:/usr/local/srs/conf/server.crt:ro
       - ./certs/privkey.pem:/usr/local/srs/conf/server.key:ro
       - ./rtc_publisher.html:/usr/local/srs/objs/nginx/html/players/rtc_publisher.html:ro

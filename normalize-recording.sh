@@ -1,5 +1,8 @@
 #!/bin/sh
-# Normalize a completed SRS MP4 for browser playback without re-encoding video.
+# Chuan hoa file ghi hinh MP4 tu SRS:
+# "Nem ca cai file .mp4 len tren ma khong sua gi ca"
+# Giu nguyen 100% video va audio goc (khong re-encode, khong resample, khong can thiep vao am thanh/hinh anh),
+# chi sap xep atom +faststart de trinh duyet web / mobile phat ngay tuc thi.
 set -eu
 
 file=${1:?Usage: normalize-recording.sh recording.mp4}
@@ -10,22 +13,23 @@ temporary="$file.sync.tmp.mp4"
 [ ! -f "$marker" ] || exit 0
 case "$file" in *.tmp.mp4|*_fixed.mp4) exit 0 ;; esac
 
-# A quiet publisher can stop growing for a while. Require a finalized MP4
-# (moov metadata), and check that the source stays unchanged through conversion.
-before=$(stat -c '%s:%y' "$file")
-duration=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$file") || exit 0
+# Kiem tra file da ket thuc ghi hinh hop le
+before=$(stat -c '%s:%y' "$file" 2>/dev/null || echo "")
+duration=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$file" 2>/dev/null) || exit 0
 case "$duration" in ''|N/A) exit 0 ;; esac
 
 trap 'rm -f "$temporary"' EXIT HUP INT TERM
-# Copying AAC preserves irregular packet durations from SRS. Browsers can play
-# those samples continuously, making speech run ahead of the video. Materialize
-# the timestamp gaps in the audio samples before encoding a regular AAC timeline.
-ffmpeg -y -nostdin -hide_banner -loglevel warning -i "$file" \
-    -map 0:v:0 -map '0:a:0?' -c:v copy -c:a aac -b:a 128k \
-    -af 'aresample=async=1000:first_pts=0' -movflags +faststart "$temporary"
 
-[ "$before" = "$(stat -c '%s:%y' "$file")" ] || exit 0
-# Preserve the recording's age for the seven-day retention policy.
-touch -r "$file" "$temporary"
-mv -f "$temporary" "$file"
+# Chi stream-copy (-c copy) va dua moov atom len dau (+faststart).
+# TUYET DOI KHONG re-encode hay resample am thanh.
+if ffmpeg -y -nostdin -hide_banner -loglevel warning -i "$file" \
+    -c copy -movflags +faststart "$temporary" 2>/dev/null; then
+    # Dam bao file goc khong bi ghi de them trong luc copy
+    current_stat=$(stat -c '%s:%y' "$file" 2>/dev/null || echo "")
+    if [ "$before" = "$current_stat" ]; then
+        touch -r "$file" "$temporary"
+        mv -f "$temporary" "$file"
+    fi
+fi
+
 touch "$marker"
