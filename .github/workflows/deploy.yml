@@ -11,6 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify DVR audio synchronization
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m unittest discover -s tests -v
       - name: Validate docker-compose syntax
         run: |
           cp .env.example .env

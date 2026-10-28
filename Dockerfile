@@ -10,3 +10,6 @@ RUN apt-get update \
 
 COPY write-hls-master.sh /usr/local/bin/write-hls-master.sh
 RUN chmod 0555 /usr/local/bin/write-hls-master.sh
+
+COPY normalize-recording.sh /usr/local/bin/normalize-recording.sh
+RUN chmod 0555 /usr/local/bin/normalize-recording.sh

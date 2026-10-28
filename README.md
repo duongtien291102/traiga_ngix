@@ -47,6 +47,23 @@ Mở firewall: `80/tcp`, `1935/tcp`, `8080/tcp`, `8088/tcp`, `1985/tcp`, `8000/u
 
 SRS giữ các file DVR trong volume Docker `traiga_recordings`. Backend Azure đọc file qua URL trong `SRS_HTTP_URL` (ví dụ `https://<DOMAIN>:8088`). Trong GitHub repo BE → Settings → Secrets and variables → Actions → Variables, đặt `SRS_HTTP_URL` bằng URL chứng chỉ đó. Không dùng IP nếu chứng chỉ được cấp cho domain.
 
+### Đồng bộ âm thanh video xem lại
+
+Sau khi MP4 hoàn tất, worker chạy `normalize-recording.sh`: giữ nguyên video,
+chuẩn hóa âm thanh theo timestamp bằng `aresample=async=1000:first_pts=0`, mã hóa
+lại AAC và đưa metadata lên đầu file (`faststart`). Chỉ remux với `-c copy` không
+sửa được khoảng trống giữa timestamp AAC và số mẫu âm thanh, có thể khiến tiếng
+đi trước hình khi trình duyệt phát lại.
+
+Triển khai bằng `docker compose build srs && docker compose up -d --force-recreate srs`
+khi không có phiên live đang phát, vì thao tác này khởi động lại SRS. Worker xử lý
+cả bản ghi cũ đã có dấu `.fixed`; dấu hoàn tất mới là `.avsync-v1`.
+File gốc chỉ được thay bằng thao tác rename sau khi chuyển đổi thành công và kiểm
+tra nguồn không thay đổi. Thời gian sửa file được giữ để không gia hạn lưu trữ 7 ngày.
+Video đã lưu trên Google Drive cần được xử lý và tải lên lại riêng.
+
+Kiểm thử: `python -m unittest discover -s tests -v` (cần FFmpeg, ffprobe và sh).
+
 Để tự tải replay lên Google Drive, thêm `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`, `GOOGLE_DRIVE_REFRESH_TOKEN` (và tùy chọn `GOOGLE_DRIVE_FOLDER_ID`) vào GitHub Secrets của repo backend. Quyền chia sẻ Anyone with link được dùng để phát video trên trang.
 
 ## GitHub Secrets (repo ngix và backend)

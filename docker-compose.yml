@@ -24,16 +24,12 @@ services:
           for f in ./objs/nginx/html/record/live/*.mp4; do
             [ -f "$$f" ] || continue
             case "$$f" in *.tmp.mp4|*_fixed.mp4) continue ;; esac
-            [ -f "$$f.fixed" ] && continue
+            [ -f "$$f.avsync-v1" ] && continue
             sz1=$$(stat -c%s "$$f" 2>/dev/null || echo 0)
             sleep 2
             sz2=$$(stat -c%s "$$f" 2>/dev/null || echo 0)
             if [ "$$sz1" -gt 0 ] && [ "$$sz1" -eq "$$sz2" ]; then
-              if ffmpeg -y -nostdin -i "$$f" -c copy -movflags +faststart "$$f.tmp.mp4" >/dev/null 2>&1; then
-                mv "$$f.tmp.mp4" "$$f" && touch "$$f.fixed"
-              else
-                rm -f "$$f.tmp.mp4"
-              fi
+              /bin/sh /usr/local/bin/normalize-recording.sh "$$f" || echo "DVR normalization failed: $$f" >&2
             fi
           done
           sleep 3
