@@ -85,6 +85,22 @@ class RecordingSyncTest(unittest.TestCase):
         self.assertEqual(self.video_hash(), video_hash)
         self.assertTrue(Path(str(self.file) + '.avsync-v1').is_file())
 
+    def test_short_audio_is_padded_to_match_video_duration(self):
+        # Create video of 4s, audio of only 2s (premature audio cutoff)
+        args = ['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi', '-i',
+                'testsrc2=size=160x90:rate=25:duration=4',
+                '-f', 'lavfi', '-i', 'sine=sample_rate=48000:duration=2',
+                '-c:v', 'libx264', '-c:a', 'aac', str(self.file)]
+        run(*args)
+        self.normalize()
+        # Verify audio duration now matches video duration (~4s)
+        res = run('ffprobe', '-v', 'error', '-show_entries', 'format=duration:stream=duration',
+                  '-of', 'json', str(self.file))
+        data = json.loads(res.stdout)
+        durations = [float(s['duration']) for s in data['streams']]
+        self.assertEqual(len(durations), 2)
+        self.assertAlmostEqual(durations[0], durations[1], delta=.08)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -22,7 +22,7 @@ trap 'rm -f "$temporary"' EXIT HUP INT TERM
 # the timestamp gaps in the audio samples before encoding a regular AAC timeline.
 if ffmpeg -y -nostdin -hide_banner -loglevel warning -i "$file" \
     -map 0:v:0 -map '0:a:0?' -c:v copy -c:a aac -b:a 128k \
-    -af 'aresample=async=1000:first_pts=0' -movflags +faststart "$temporary" 2>/dev/null; then
+    -af 'aresample=async=1000:first_pts=0,apad' -shortest -movflags +faststart "$temporary" 2>/dev/null; then
     current_stat=$(stat -c '%s:%y' "$file" 2>/dev/null || echo "")
     if [ -z "$before" ] || [ "$before" = "$current_stat" ]; then
         touch -r "$file" "$temporary"
