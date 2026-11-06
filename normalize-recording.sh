@@ -27,7 +27,6 @@ if ffmpeg -y -nostdin -hide_banner -loglevel warning -i "$file" \
     if [ -z "$before" ] || [ "$before" = "$current_stat" ]; then
         touch -r "$file" "$temporary"
         mv -f "$temporary" "$file"
+        touch "$marker"
     fi
 fi
-
-touch "$marker"
