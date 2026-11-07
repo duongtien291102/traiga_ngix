@@ -31,7 +31,7 @@ class RecordingSyncTest(unittest.TestCase):
                 'testsrc2=size=160x90:rate=25:duration=4']
         if audio:
             args += ['-f', 'lavfi', '-i', 'sine=sample_rate=48000:duration=4',
-                     '-af', r'aselect=not(between(t\,1\,1.5))', '-c:a', 'aac']
+                     '-c:a', 'aac', '-bsf:a', r'noise=drop=between(n\,45\,70)']
         run(*args, '-c:v', 'libx264', str(self.file))
 
     def normalize(self):
