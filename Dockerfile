@@ -1,4 +1,4 @@
-FROM ossrs/srs:5
+FROM ossrs/srs:6.0.195
 
 USER root
 

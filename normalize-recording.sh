@@ -8,7 +8,7 @@ temporary="$file.sync.tmp.mp4"
 
 [ -f "$file" ] || exit 0
 [ ! -f "$marker" ] || exit 0
-case "$file" in *.tmp.mp4|*_fixed.mp4) exit 0 ;; esac
+case "$file" in *.tmp.mp4|*_fixed.mp4|*.fixed.mp4|*.bak.mp4) exit 0 ;; esac
 
 # A quiet publisher can stop growing for a while. Require a finalized MP4
 # (moov metadata), and check that the source stays unchanged through conversion.
@@ -22,7 +22,8 @@ trap 'rm -f "$temporary"' EXIT HUP INT TERM
 # the timestamp gaps in the audio samples before encoding a regular AAC timeline.
 if ffmpeg -y -nostdin -hide_banner -loglevel warning -i "$file" \
     -map 0:v:0 -map '0:a:0?' -c:v copy -c:a aac -b:a 128k \
-    -af 'aresample=async=1000:first_pts=0,apad' -shortest -movflags +faststart "$temporary" 2>/dev/null; then
+    -af "aresample=async=1000:first_pts=0,apad=whole_dur=$duration,atrim=duration=$duration,asetpts=N/SR/TB" \
+    -t "$duration" -movflags +faststart "$temporary" 2>/dev/null; then
     current_stat=$(stat -c '%s:%y' "$file" 2>/dev/null || echo "")
     if [ -z "$before" ] || [ "$before" = "$current_stat" ]; then
         touch -r "$file" "$temporary"
