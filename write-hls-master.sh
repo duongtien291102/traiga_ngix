@@ -33,21 +33,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-dimensions=$(/usr/bin/ffprobe -v error -rw_timeout 5000000 -select_streams v:0 \
-	-show_entries stream=width,height -of csv=s=x:p=0 \
-	"$source_rtmp" 2>/dev/null | head -n 1 || true)
-case "$dimensions" in
-	*[!0-9x]*|''|*x) dimensions=1280x720 ;;
-esac
-source_width=${dimensions%x*}
-height=${dimensions#*x}
-
-case "$height" in
-	9[0-9][0-9]|[1-9][0-9][0-9][0-9]*) source_quality=1080; source_bw=5000000 ;;
-	6[5-9][0-9]|[7-8][0-9][0-9]) source_quality=720; source_bw=2800000 ;;
-	4[4-9][0-9]|[5-6][0-9][0-9]) source_quality=480; source_bw=1400000 ;;
-	*) source_quality=360; source_bw=800000 ;;
-esac
+source_width=1280
+height=720
+source_quality=720
+source_bw=2800000
 
 write_master() {
   {
@@ -68,6 +57,24 @@ write_master() {
   } > "$temp_file"
   mv -f "$temp_file" "$master_file"
 }
+
+write_master
+
+dimensions=$(/usr/bin/ffprobe -v error -rw_timeout 3000000 -select_streams v:0 \
+	-show_entries stream=width,height -of csv=s=x:p=0 \
+	"$source_rtmp" 2>/dev/null | head -n 1 || true)
+case "$dimensions" in
+	*[!0-9x]*|''|*x) dimensions=1280x720 ;;
+esac
+source_width=${dimensions%x*}
+height=${dimensions#*x}
+
+case "$height" in
+	9[0-9][0-9]|[1-9][0-9][0-9][0-9]*) source_quality=1080; source_bw=5000000 ;;
+	6[5-9][0-9]|[7-8][0-9][0-9]) source_quality=720; source_bw=2800000 ;;
+	4[4-9][0-9]|[5-6][0-9][0-9]) source_quality=480; source_bw=1400000 ;;
+	*) source_quality=360; source_bw=800000 ;;
+esac
 
 write_master
 
